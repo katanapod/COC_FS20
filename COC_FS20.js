@@ -1,9 +1,9 @@
-// Class for connecting a CUL adapter to send and receive FS20 commands
-// 2013 Thomas Schmidt
+// Class for connecting a COC adapter to send and receive FS20 commands
+// 2013 Thomas Schmidt <--original Repo
 // MIT License
-// https://github.com/netAction/CUL_FS20
+// https://github.com/katanapod/COC_FS20
 
-// Connection to CUL adapter
+// Connection to COC adapter
 var SerialPortModule = require("serialport");
 var SerialPort = SerialPortModule.SerialPort;
 var delimiter = "\r\n";
@@ -11,7 +11,7 @@ var delimiter = "\r\n";
 // logging to a file with timestamps and logrotate
 var winston = require('winston');
 winston.add(winston.transports.File, {
-	filename: 'CUL_FS20.log',
+	filename: 'COC_FS20.log',
 	json: false,
 	timestamp: function() {
 		var now = new Date();
@@ -27,7 +27,7 @@ winston.add(winston.transports.File, {
 		return strDateTime;
 	}
 });
-// Disable console. If you need it run $ tail -f CUL_FS20.log
+// Disable console. If you need it run $ tail -f COC_FS20.log
 winston.remove(winston.transports.Console);
 
 // Trigger events "connected" or "read"
@@ -35,13 +35,13 @@ var events = require('events');
 
 
 // The class itself
-function CUL_FS20() {
+function COC_FS20() {
 	this.serialPort = new SerialPort("/dev/ttyAMA0", {
 		parser: SerialPortModule.parsers.readline(delimiter),
 		baudrate: 38400		 
 	});
 
-	this.CUL_connected = false;
+	this.COC_connected = false;
 
 	this.commands = {
 		// List of commands
@@ -77,10 +77,10 @@ function CUL_FS20() {
 	events.EventEmitter.call(this);
 
 	var self = this;
-	winston.info('Starting CUL FS20 ...');
+	winston.info('Starting COC FS20 ...');
 	self.serialPort.on("open", function () {
 		// TODO: This does not log anything:
-		winston.info('... connection to CUL opened ...');
+		winston.info('... connection to COC opened ...');
 		self.serialPort.on('data', function(data) {
 			receiveData(data,self);
 		});
@@ -89,7 +89,7 @@ function CUL_FS20() {
 				winston.error('error ' + err);
 			} else {
 				winston.info('... listening to FS20 commands.');
-				self.CUL_connected = true;
+				self.COC_connected = true;
 				self.emit('connected');
 
 				// some settings http://culfw.de/commandref.html
@@ -162,9 +162,9 @@ function receiveData(data,self) {
 } // receiveData
 
 
-CUL_FS20.prototype.write = function(message) {
-	if (this.CUL_connected == false) {
-		winston.error("CUL not connected.");
+COC_FS20.prototype.write = function(message) {
+	if (this.COC_connected == false) {
+		winston.error("COC not connected.");
 		return;
 	}
 	if (!(message.command in this.commands)) {
@@ -181,18 +181,18 @@ CUL_FS20.prototype.write = function(message) {
 
 	command = this.commands[message.command];
 	this.serialPort.write("F"+message.address+command+"\n");
-} // CUL_FS20.write
+} // COC_FS20.write
 
 
-function FS20_Device(CUL_FS20_Obj,deviceName,address) {
-	for(var command in CUL_FS20_Obj.commands) {
+function FS20_Device(COC_FS20_Obj,deviceName,address) {
+	for(var command in COC_FS20_Obj.commands) {
 		(function(obj,addr,cmd,self) {
 			self[command] = function() {
 				obj.write({'address':addr,'command':cmd});
 				winston.info('   Sent: '+this.name+' '+cmd);
 				self.lastCommand = cmd;
 			}
-		})(CUL_FS20_Obj,address,command,this);
+		})(COC_FS20_Obj,address,command,this);
 	}
 	this.address = address;
 	this.name = deviceName;
@@ -203,15 +203,15 @@ function FS20_Device(CUL_FS20_Obj,deviceName,address) {
 	}
 }
 
-CUL_FS20.prototype.registerDevices = function(deviceNames) {
+COC_FS20.prototype.registerDevices = function(deviceNames) {
 	for(var deviceName in deviceNames) {
 		this.devices[deviceName] = new FS20_Device(this,deviceName,deviceNames[deviceName]);
 	}
 	return this.devices;
-} // CUL_FS20.registerDevices
+} // COC_FS20.registerDevices
 
 
-CUL_FS20.prototype.__proto__ = events.EventEmitter.prototype;
+COC_FS20.prototype.__proto__ = events.EventEmitter.prototype;
 
-module.exports = CUL_FS20;
+module.exports = COC_FS20;
 
