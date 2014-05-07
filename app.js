@@ -1,11 +1,11 @@
-var CUL_FS20 = require("./CUL_FS20");
-CUL_FS20 = new CUL_FS20;
+var COC_FS20 = require("./COC_FS20");
+COC_FS20 = new COC_FS20;
 
 
 // Make pstree happy with a nice process title instead of "node":
-process.title = 'CUL_FS20';
+process.title = 'COC_FS20';
 
-var d = CUL_FS20.registerDevices({
+var d = COC_FS20.registerDevices({
 	Desk : 'F3AA00',
 	Remote_Ch1 : 'EB9500',
 	Remote_Ch2 : 'EB9501',
@@ -14,20 +14,20 @@ var d = CUL_FS20.registerDevices({
 });
 
 
-CUL_FS20.on("connected", function () {
+COC_FS20.on("connected", function () {
 	// register a new address in a receiver:
-	// CUL_FS20.devices.Desk.on();
+	// COC_FS20.devices.Desk.on();
 	// or shorter:
 	// d.Desk.on();
 	// If you do not want to use the device manager:
-	// CUL_FS20.write({'address':'F3AA00','command':'on'});
+	// COC_FS20.write({'address':'F3AA00','command':'on'});
 
 	// set all lamps to default:
 	// d.Desk.off();
 });
 
 
-CUL_FS20.on("read", function(message) {
+COC_FS20.on("read", function(message) {
 	d.Desk[
 		// switched off
 		(d.Remote_Ch1=='off') ? 'off' :
