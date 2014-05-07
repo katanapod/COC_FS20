@@ -4,7 +4,9 @@
 // https://github.com/netAction/CUL_FS20
 
 // Connection to CUL adapter
-var SerialPort = require("serialport").SerialPort;
+var SerialPortModule = require("serialport");
+var SerialPort = SerialPortModule.SerialPort;
+var delimiter = "\r\n";
 
 // logging to a file with timestamps and logrotate
 var winston = require('winston');
@@ -34,9 +36,11 @@ var events = require('events');
 
 // The class itself
 function CUL_FS20() {
-	this.serialPort = new SerialPort("/dev/ttyACM0", {
-		baudrate: 9600
+	this.serialPort = new SerialPort("/dev/ttyAMA0", {
+		parser: SerialPortModule.parsers.readline(delimiter),
+		baudrate: 38400		 
 	});
+
 	this.CUL_connected = false;
 
 	this.commands = {
